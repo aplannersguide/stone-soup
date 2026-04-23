@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase';
 import Header from '@/components/Header';
 
 export default function Dashboard() {
-export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [mySoups, setMySoups] = useState([]);
   const [loading, setLoading] = useState(true);
