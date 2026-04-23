@@ -12,6 +12,7 @@ export default function DynamicEventPage() {
 
   const [eventData, setEventData] = useState(null);
   const [ingredients, setIngredients] = useState([]);
+  const [isHost, setIsHost] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -42,6 +43,12 @@ export default function DynamicEventPage() {
 
         if (ingsError) throw ingsError;
         setIngredients(ings || []);
+
+        // Fetch User to check if Host
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && session.user.id === event.cook_id) {
+          setIsHost(true);
+        }
 
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -106,6 +113,51 @@ export default function DynamicEventPage() {
     }
   };
 
+  const handleUpdateIngredientStatus = async (ingredientId, newStatus) => {
+    try {
+      const { data, error } = await supabase
+        .from('ingredients')
+        .update({ status: newStatus })
+        .eq('id', ingredientId)
+        .select();
+
+      if (error) throw error;
+      
+      setIngredients(ingredients.map(ing => 
+        ing.id === ingredientId ? data[0] : ing
+      ));
+    } catch (err) {
+      console.error("Error updating ingredient:", err);
+      alert("Failed to update ingredient.");
+    }
+  };
+
+  const handleAddNeed = async () => {
+    if (!newSurprise.trim() || !eventData) return;
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('ingredients')
+        .insert([{
+          event_id: eventData.id,
+          title: newSurprise,
+          type: 'need',
+          status: 'open'
+        }])
+        .select();
+
+      if (error) throw error;
+      setIngredients([...ingredients, data[0]]);
+      setNewSurprise('');
+    } catch (err) {
+      console.error("Error adding need:", err);
+      alert("Failed to add need.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-stone-cream flex items-center justify-center">
@@ -132,7 +184,7 @@ export default function DynamicEventPage() {
   const isReady = eventData.status === 'Ready';
   const needs = ingredients.filter(i => i.type === 'need');
   const openNeedsCount = needs.filter(i => i.status === 'open').length;
-  const surprises = ingredients.filter(i => i.type === 'surprise');
+  const surprises = ingredients.filter(i => i.type === 'surprise' && i.status !== 'rejected');
 
   return (
     <div className="min-h-screen bg-stone-cream text-stone-text font-sans pb-24">
@@ -179,26 +231,29 @@ export default function DynamicEventPage() {
         {/* Input Area (Hidden when Ready) */}
         {!isReady && (
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-sage-light/30 max-w-2xl mx-auto mb-16 relative overflow-hidden transition-all">
+             {isHost && <div className="absolute top-0 right-0 bg-stone-terracotta text-white text-[10px] font-bold uppercase px-2 py-1 rounded-bl-lg">Host Mode</div>}
              <div className="flex flex-col sm:flex-row gap-3">
                 <input 
                   type="text" 
                   value={newSurprise}
                   onChange={(e) => setNewSurprise(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddSurprise()}
-                  placeholder="I can bring..."
+                  onKeyDown={(e) => e.key === 'Enter' && (isHost ? handleAddNeed() : handleAddSurprise())}
+                  placeholder={isHost ? "Add a new need to the pot..." : "I can bring..."}
                   className="flex-1 p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50"
                   disabled={isSubmitting}
                 />
                 <button 
-                  onClick={handleAddSurprise}
+                  onClick={isHost ? handleAddNeed : handleAddSurprise}
                   disabled={isSubmitting || !newSurprise.trim()}
                   className="bg-stone-sage hover:bg-[#7a8c79] disabled:opacity-50 text-white px-6 py-4 rounded-xl font-semibold shadow-sm transition-colors whitespace-nowrap"
                 >
-                  {isSubmitting ? 'Adding...' : 'Add to Pot'}
+                  {isSubmitting ? 'Adding...' : (isHost ? 'Add Need' : 'Add to Pot')}
                 </button>
              </div>
              <p className="text-xs text-stone-text/50 mt-3 text-center">
-               *Remember, things like "helping set up" or "good vibes" are perfect ingredients!
+               {isHost 
+                 ? "You can add new ingredients that you need for the event." 
+                 : "*Remember, things like 'helping set up' or 'good vibes' are perfect ingredients!"}
              </p>
           </div>
         )}
@@ -240,12 +295,31 @@ export default function DynamicEventPage() {
                  <p className="text-stone-text/50 italic text-sm">No surprises added yet. Be the first!</p>
                )}
                {surprises.map((surprise) => (
-                 <IngredientCard 
-                   key={surprise.id}
-                   type="surprise"
-                   title={surprise.title}
-                   claimedBy={{ name: surprise.claimed_by_name }}
-                 />
+                 <div key={surprise.id} className="relative">
+                   <IngredientCard 
+                     type="surprise"
+                     title={surprise.title}
+                     claimedBy={{ name: surprise.claimed_by_name }}
+                     status={surprise.status}
+                   />
+                   {/* Host Controls for Surprises */}
+                   {isHost && surprise.status === 'pending' && (
+                     <div className="absolute -bottom-3 right-4 flex gap-2">
+                        <button 
+                          onClick={() => handleUpdateIngredientStatus(surprise.id, 'approved')}
+                          className="bg-stone-sage text-white text-xs font-bold px-3 py-1 rounded shadow-sm hover:bg-[#7a8c79]"
+                        >
+                          Accept
+                        </button>
+                        <button 
+                          onClick={() => handleUpdateIngredientStatus(surprise.id, 'rejected')}
+                          className="bg-stone-paper text-stone-text/70 border border-stone-sage-light text-xs font-bold px-3 py-1 rounded shadow-sm hover:bg-white"
+                        >
+                          Decline
+                        </button>
+                     </div>
+                   )}
+                 </div>
                ))}
                
                {/* Hidden if Ready */}

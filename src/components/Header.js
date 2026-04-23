@@ -77,7 +77,7 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href="/publish" className="bg-stone-sage/10 text-stone-sage hover:bg-stone-sage hover:text-white px-4 py-2 rounded-xl transition-colors">
+              <Link href="/login" className="bg-stone-sage/10 text-stone-sage hover:bg-stone-sage hover:text-white px-4 py-2 rounded-xl transition-colors font-bold">
                 Sign In
               </Link>
             </>

@@ -169,7 +169,7 @@ export default function PublishFlow() {
              </form>
              
              <p className="text-center text-sm text-stone-text/50 mt-8">
-               Already have an account? <span className="text-stone-text font-bold cursor-pointer hover:underline">Log in</span>
+               Already have an account? <Link href="/login" className="text-stone-text font-bold cursor-pointer hover:underline">Log in</Link>
              </p>
            </div>
          ) : (

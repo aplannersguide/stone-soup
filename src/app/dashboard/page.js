@@ -107,7 +107,7 @@ export default function Dashboard() {
                         <p className="text-sm text-stone-text/60 mt-1">{event.pot}</p>
                       </div>
                       <Link href={`/soup/${event.id}`} className="text-sm font-medium text-stone-sage hover:text-stone-sage-dark bg-stone-paper px-3 py-1.5 rounded-lg border border-stone-sage-light/30 whitespace-nowrap">
-                        View Page
+                        Tweak the recipe
                       </Link>
                     </div>
                   </div>
