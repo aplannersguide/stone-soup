@@ -9,10 +9,7 @@ export default function EventDemo() {
   const [draft, setDraft] = useState(null);
   
   const [newIngredient, setNewIngredient] = useState('');
-  const [surprises, setSurprises] = useState([
-    { name: 'Elena R.', offering: "My acoustic guitar! I'll play some background tunes for 30 mins." },
-    { name: 'David K.', offering: "A giant thermos of iced tea and some paper cups." }
-  ]);
+  const [surprises, setSurprises] = useState([]);
 
   useEffect(() => {
     // Read the draft event from local storage when the page loads

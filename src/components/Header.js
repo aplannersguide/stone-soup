@@ -54,7 +54,7 @@ export default function Header() {
 
         <nav className="flex items-center gap-6 text-sm font-medium">
           {/* Always show explore */}
-          <Link href="/" className="hover:text-stone-terracotta transition-colors hidden sm:block text-stone-text/70">
+          <Link href="/explore" className="hover:text-stone-terracotta transition-colors hidden sm:block text-stone-text/70">
             Explore
           </Link>
           

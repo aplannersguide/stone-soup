@@ -34,6 +34,25 @@ export default function Dashboard() {
     loadDashboard();
   }, []);
 
+  const handleTogglePublic = async (eventId, currentStatus) => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .update({ is_public: !currentStatus })
+        .eq('id', eventId)
+        .select();
+
+      if (error) throw error;
+      
+      setMySoups(mySoups.map(event => 
+        event.id === eventId ? data[0] : event
+      ));
+    } catch (err) {
+      console.error("Error toggling status:", err);
+      alert("Failed to update event status.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-stone-cream flex flex-col">
@@ -96,20 +115,41 @@ export default function Dashboard() {
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <div className={`inline-block px-2 py-1 font-bold text-[10px] uppercase tracking-widest rounded mb-2 ${
+                        <div className={`inline-block px-2 py-1 font-bold text-[10px] uppercase tracking-widest rounded mb-2 mr-2 ${
                           event.status === 'Ready' ? 'bg-stone-sage/10 text-stone-sage' : 'bg-stone-terracotta/10 text-stone-terracotta'
                         }`}>
                           {event.status}
+                        </div>
+                        <div className={`inline-block px-2 py-1 font-bold text-[10px] uppercase tracking-widest rounded mb-2 ${
+                          event.is_public ? 'bg-blue-100 text-blue-700' : 'bg-stone-text/10 text-stone-text/70'
+                        }`}>
+                          {event.is_public ? 'Public' : 'Private'}
                         </div>
                         <Link href={`/soup/${event.id}`} className="hover:underline decoration-stone-terracotta/30 underline-offset-4">
                           <h3 className="text-2xl font-bold">{event.stone}</h3>
                         </Link>
                         <p className="text-sm text-stone-text/60 mt-1">{event.pot}</p>
                       </div>
-                      <Link href={`/soup/${event.id}`} className="text-sm font-medium text-stone-sage hover:text-stone-sage-dark bg-stone-paper px-3 py-1.5 rounded-lg border border-stone-sage-light/30 whitespace-nowrap">
-                        Tweak the recipe
-                      </Link>
+                      <div className="flex flex-col gap-2 items-end">
+                        <Link href={`/soup/${event.id}`} className="text-sm font-medium text-stone-sage hover:text-stone-sage-dark bg-stone-paper px-3 py-1.5 rounded-lg border border-stone-sage-light/30 whitespace-nowrap text-center w-full">
+                          Tweak the recipe
+                        </Link>
+                        <button 
+                          onClick={() => handleTogglePublic(event.id, event.is_public)}
+                          className="text-xs font-medium text-stone-text/60 hover:text-stone-text underline"
+                        >
+                          Make {event.is_public ? 'Private' : 'Public'}
+                        </button>
+                      </div>
                     </div>
+                    {!event.is_public && (
+                      <div className="mt-4 pt-4 border-t border-stone-sage-light/20">
+                         <p className="text-xs text-stone-text/70 mb-1">Private Event Link (Share this with guests):</p>
+                         <code className="text-xs bg-stone-paper p-2 rounded block select-all overflow-x-auto">
+                           {typeof window !== 'undefined' ? `${window.location.origin}/soup/${event.id}` : `/soup/${event.id}`}
+                         </code>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

@@ -11,7 +11,8 @@ export default function Home() {
   const [formData, setFormData] = useState({
     stone: '',
     description: '',
-    pot: '',
+    location: '',
+    datetime: '',
     needs: ['', '']
   });
 
@@ -29,7 +30,9 @@ export default function Home() {
     e.preventDefault();
     // Filter out empty needs
     const cleanData = {
-      ...formData,
+      stone: formData.stone,
+      description: formData.description,
+      pot: `${formData.location} • ${formData.datetime}`,
       needs: formData.needs.filter(n => n.trim() !== '')
     };
     
@@ -117,21 +120,40 @@ export default function Home() {
                 </div>
               </section>
 
-              {/* The Pot Section */}
+               {/* The Pot Section */}
               <section>
                  <h3 className="text-xs font-bold uppercase tracking-wider text-stone-sage mb-2">Where & When? 📍</h3>
-                  <label htmlFor="pot" className="block text-xl font-medium mb-3">
-                    The Pot <span className="text-sm font-normal text-stone-sage-light ml-2">(Location & Time)</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    id="pot" 
-                    required
-                    value={formData.pot}
-                    onChange={(e) => setFormData({...formData, pot: e.target.value})}
-                    placeholder="e.g. Central Park • Sat, Oct 19, 2 PM"
-                    className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
-                  />
+                  
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="location" className="block text-xl font-medium mb-3">
+                        Location
+                      </label>
+                      <input 
+                        type="text" 
+                        id="location" 
+                        required
+                        value={formData.location}
+                        onChange={(e) => setFormData({...formData, location: e.target.value})}
+                        placeholder="e.g. Central Park"
+                        className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="datetime" className="block text-xl font-medium mb-3">
+                        Date & Time
+                      </label>
+                      <input 
+                        type="text" 
+                        id="datetime" 
+                        required
+                        value={formData.datetime}
+                        onChange={(e) => setFormData({...formData, datetime: e.target.value})}
+                        placeholder="e.g. Sat, Oct 19, 2 PM"
+                        className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
+                      />
+                    </div>
+                  </div>
               </section>
 
               {/* Initial Needs Section */}
