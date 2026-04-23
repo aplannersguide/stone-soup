@@ -61,7 +61,7 @@ export default function Explore() {
                     <p className="text-sm text-stone-text/70 mb-4 line-clamp-2 flex-1">{event.description}</p>
                     <div className="text-sm text-stone-text/60 flex items-center gap-2 pt-4 border-t border-stone-sage-light/20">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-sage shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                      <span className="truncate">{event.pot}</span>
+                      <span className="truncate">{event.location} • {event.event_date}</span>
                     </div>
                   </div>
                 </div>

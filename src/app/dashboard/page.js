@@ -128,7 +128,7 @@ export default function Dashboard() {
                         <Link href={`/soup/${event.id}`} className="hover:underline decoration-stone-terracotta/30 underline-offset-4">
                           <h3 className="text-2xl font-bold">{event.stone}</h3>
                         </Link>
-                        <p className="text-sm text-stone-text/60 mt-1">{event.pot}</p>
+                        <p className="text-sm text-stone-text/60 mt-1">{event.location} • {event.event_date} {event.event_time}</p>
                       </div>
                       <div className="flex flex-col gap-2 items-end">
                         <Link href={`/soup/${event.id}`} className="text-sm font-medium text-stone-sage hover:text-stone-sage-dark bg-stone-paper px-3 py-1.5 rounded-lg border border-stone-sage-light/30 whitespace-nowrap text-center w-full">

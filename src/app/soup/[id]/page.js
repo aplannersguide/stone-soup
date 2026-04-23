@@ -19,6 +19,14 @@ export default function DynamicEventPage() {
   const [newSurprise, setNewSurprise] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [editData, setEditData] = useState({
+    stone: '',
+    description: '',
+    location: '',
+    event_date: '',
+    event_time: ''
+  });
+
   useEffect(() => {
     async function fetchEventAndIngredients() {
       if (!eventId) return;
@@ -33,6 +41,13 @@ export default function DynamicEventPage() {
 
         if (eventError) throw eventError;
         setEventData(event);
+        setEditData({
+          stone: event.stone || '',
+          description: event.description || '',
+          location: event.location || '',
+          event_date: event.event_date || '',
+          event_time: event.event_time || ''
+        });
 
         // Fetch Ingredients
         const { data: ings, error: ingsError } = await supabase
@@ -60,6 +75,24 @@ export default function DynamicEventPage() {
 
     fetchEventAndIngredients();
   }, [eventId]);
+
+  const handleAutoSaveEventField = async (field, value) => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .update({ [field]: value })
+        .eq('id', eventId)
+        .select();
+
+      if (error) throw error;
+      setEventData(data[0]);
+    } catch (err) {
+      console.error(`Error updating ${field}:`, err);
+      // Revert editData to original if failed
+      setEditData(prev => ({ ...prev, [field]: eventData[field] }));
+      alert(`Failed to save ${field}.`);
+    }
+  };
 
   const handleAddSurprise = async () => {
     if (!newSurprise.trim() || !eventData) return;
@@ -158,6 +191,39 @@ export default function DynamicEventPage() {
     }
   };
 
+  const handleDeleteNeed = async (ingredientId) => {
+    try {
+      const { error } = await supabase
+        .from('ingredients')
+        .delete()
+        .eq('id', ingredientId);
+
+      if (error) throw error;
+      setIngredients(ingredients.filter(ing => ing.id !== ingredientId));
+    } catch (err) {
+      console.error("Error deleting need:", err);
+      alert("Failed to delete ingredient.");
+    }
+  };
+
+  const handleUpdateNeedTitle = async (ingredientId, newTitle) => {
+    try {
+      const { data, error } = await supabase
+        .from('ingredients')
+        .update({ title: newTitle })
+        .eq('id', ingredientId)
+        .select();
+
+      if (error) throw error;
+      setIngredients(ingredients.map(ing => 
+        ing.id === ingredientId ? data[0] : ing
+      ));
+    } catch (err) {
+      console.error("Error updating need title:", err);
+      alert("Failed to update ingredient title.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-stone-cream flex items-center justify-center">
@@ -198,22 +264,93 @@ export default function DynamicEventPage() {
           </div>
         )}
         <div className={`max-w-3xl mx-auto px-6 pb-12 sm:pb-16 text-center ${isReady ? 'pt-20' : 'pt-12 sm:pt-16'}`}>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight text-stone-terracotta-dark">
-            {eventData.stone}
-          </h1>
-          {eventData.description && (
-             <p className="text-lg text-stone-text/80 max-w-2xl mx-auto mb-8">
-               {eventData.description}
-             </p>
-          )}
-          
-          {/* The Pot (Location/Time) */}
-          <div className="flex items-center justify-center text-stone-text/70 font-medium">
-            <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-xl shadow-sm border border-stone-sage-light/20">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              <span>{eventData.pot}</span>
+          {isHost && !isReady ? (
+            <div className="group relative">
+              <div className="flex justify-center mb-4">
+                <span className="bg-stone-terracotta text-white text-[10px] font-bold uppercase px-3 py-1 rounded-full shadow-sm">
+                  Host Mode
+                </span>
+              </div>
+              <input 
+                type="text" 
+                value={editData.stone}
+                onChange={e => setEditData({...editData, stone: e.target.value})}
+                onBlur={e => handleAutoSaveEventField('stone', e.target.value)}
+                className="w-full text-center text-4xl sm:text-5xl font-bold mb-4 tracking-tight text-stone-terracotta-dark bg-transparent border-b-2 border-transparent hover:border-stone-sage-light/50 focus:outline-none focus:border-stone-terracotta transition-colors"
+                placeholder="Event Title"
+              />
+              <textarea 
+                value={editData.description}
+                onChange={e => setEditData({...editData, description: e.target.value})}
+                onBlur={e => handleAutoSaveEventField('description', e.target.value)}
+                className="w-full text-center text-lg text-stone-text/80 max-w-2xl mx-auto mb-8 bg-transparent border-b-2 border-transparent hover:border-stone-sage-light/50 focus:outline-none focus:border-stone-terracotta transition-colors resize-none"
+                placeholder="Add a description..."
+                rows="2"
+              />
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-stone-text/70 font-medium">
+                <div className="flex items-center gap-2 bg-white px-6 py-2 rounded-xl shadow-sm border border-stone-sage-light/20 focus-within:border-stone-terracotta transition-colors">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <input 
+                    type="text" 
+                    value={editData.location}
+                    onChange={e => setEditData({...editData, location: e.target.value})}
+                    onBlur={e => handleAutoSaveEventField('location', e.target.value)}
+                    className="bg-transparent focus:outline-none text-center w-40 sm:w-auto font-medium"
+                    placeholder="Location"
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-white px-6 py-2 rounded-xl shadow-sm border border-stone-sage-light/20 focus-within:border-stone-terracotta transition-colors">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <input 
+                    type="date" 
+                    value={editData.event_date}
+                    onChange={e => setEditData({...editData, event_date: e.target.value})}
+                    onBlur={e => handleAutoSaveEventField('event_date', e.target.value)}
+                    className="bg-transparent focus:outline-none text-sm font-medium"
+                  />
+                  <span className="opacity-50">•</span>
+                  <input 
+                    type="time" 
+                    value={editData.event_time}
+                    onChange={e => setEditData({...editData, event_time: e.target.value})}
+                    onBlur={e => handleAutoSaveEventField('event_time', e.target.value)}
+                    className="bg-transparent focus:outline-none text-sm font-medium"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-stone-text/40 mt-6 uppercase tracking-wider font-bold">✨ Click any text above to edit. Auto-saves when you click away.</p>
             </div>
-          </div>
+          ) : (
+            <div className="relative">
+              {isHost && (
+                <div className="flex justify-center mb-4">
+                  <span className="bg-stone-terracotta text-white text-[10px] font-bold uppercase px-3 py-1 rounded-full shadow-sm">
+                    Host Mode
+                  </span>
+                </div>
+              )}
+              <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight text-stone-terracotta-dark">
+                {eventData.stone}
+              </h1>
+              {eventData.description && (
+                 <p className="text-lg text-stone-text/80 max-w-2xl mx-auto mb-8">
+                   {eventData.description}
+                 </p>
+              )}
+              
+              {/* The Pot (Location/Time) */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-stone-text/70 font-medium">
+                <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-xl shadow-sm border border-stone-sage-light/20">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <span>{eventData.location}</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-xl shadow-sm border border-stone-sage-light/20">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>{eventData.event_date} • {eventData.event_time}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -231,7 +368,6 @@ export default function DynamicEventPage() {
         {/* Input Area (Hidden when Ready) */}
         {!isReady && (
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-sage-light/30 max-w-2xl mx-auto mb-16 relative overflow-hidden transition-all">
-             {isHost && <div className="absolute top-0 right-0 bg-stone-terracotta text-white text-[10px] font-bold uppercase px-2 py-1 rounded-bl-lg">Host Mode</div>}
              <div className="flex flex-col sm:flex-row gap-3">
                 <input 
                   type="text" 
@@ -278,7 +414,10 @@ export default function DynamicEventPage() {
                    title={need.title}
                    claimedBy={need.claimed_by_name}
                    isReady={isReady}
+                   isHost={isHost}
                    onClaim={() => handleClaimNeed(need.id)}
+                   onDelete={() => handleDeleteNeed(need.id)}
+                   onUpdate={(newTitle) => handleUpdateNeedTitle(need.id, newTitle)}
                  />
                ))}
             </div>

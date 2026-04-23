@@ -30,7 +30,9 @@ export default function EventDemo() {
   const eventData = draft || {
     stone: "Spring Swap & Social",
     description: "Bring your gently used clothes, books, and household items to trade. Even if you have nothing to swap, come for the community, the snacks, and the good vibes.",
-    pot: "Sat, April 20 • 1:00 PM • Riverside Park",
+    location: "Riverside Park",
+    event_date: "2024-04-20",
+    event_time: "13:00",
     needs: ["2 Folding Tables", "Setup Crew"]
   };
 
@@ -64,10 +66,14 @@ export default function EventDemo() {
           )}
           
           {/* The Pot (Location/Time) */}
-          <div className="flex items-center justify-center text-stone-text/70 font-medium">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-stone-text/70 font-medium">
             <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-xl shadow-sm border border-stone-sage-light/20">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              <span>{eventData.pot}</span>
+              <span>{eventData.location}</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-xl shadow-sm border border-stone-sage-light/20">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span>{eventData.event_date} • {eventData.event_time}</span>
             </div>
           </div>
           

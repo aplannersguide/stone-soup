@@ -47,8 +47,11 @@ export default function PublishFlow() {
           { 
             cook_id: user.id,
             stone: draft.stone, 
+            pot: `${draft.location} | ${draft.event_date} ${draft.event_time}`, // Legacy column fallback
             description: draft.description,
-            pot: draft.pot,
+            location: draft.location,
+            event_date: draft.event_date,
+            event_time: draft.event_time,
             status: 'Gathering',
             is_public: true
           }

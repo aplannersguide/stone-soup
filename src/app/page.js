@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../components/Header';
+import { supabase } from '../lib/supabase';
 
 export default function Home() {
   const router = useRouter();
@@ -12,7 +13,8 @@ export default function Home() {
     stone: '',
     description: '',
     location: '',
-    datetime: '',
+    event_date: '',
+    event_time: '',
     needs: ['', '']
   });
 
@@ -26,21 +28,83 @@ export default function Home() {
     setFormData({ ...formData, needs: [...formData.needs, ''] });
   };
 
-  const handleSubmit = (e) => {
+  const [session, setSession] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Get fresh session to ensure it's not stale
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+
     // Filter out empty needs
+    const cleanNeeds = formData.needs.filter(n => n.trim() !== '');
     const cleanData = {
       stone: formData.stone,
       description: formData.description,
-      pot: `${formData.location} • ${formData.datetime}`,
-      needs: formData.needs.filter(n => n.trim() !== '')
+      location: formData.location,
+      event_date: formData.event_date,
+      event_time: formData.event_time,
+      needs: cleanNeeds
     };
     
-    // Save to localStorage as our "Draft"
-    localStorage.setItem('stoneSoupDraft', JSON.stringify(cleanData));
-    
-    // Navigate to the shared pot page
-    router.push('/demo');
+    if (currentSession?.user) {
+      // User is logged in, create event directly
+      try {
+        const { data: eventData, error: eventError } = await supabase
+          .from('events')
+          .insert([
+            { 
+              cook_id: currentSession.user.id,
+              stone: cleanData.stone, 
+              pot: `${cleanData.location} | ${cleanData.event_date} ${cleanData.event_time}`, // Legacy column fallback
+              description: cleanData.description,
+              location: cleanData.location,
+              event_date: cleanData.event_date,
+              event_time: cleanData.event_time,
+              status: 'Gathering',
+              is_public: true
+            }
+          ])
+          .select();
+
+        if (eventError) throw eventError;
+        
+        const newEventId = eventData[0].id;
+
+        if (cleanNeeds.length > 0) {
+          const needsToInsert = cleanNeeds.map(need => ({
+            event_id: newEventId,
+            title: need,
+            type: 'need',
+            status: 'open'
+          }));
+
+          const { error: needsError } = await supabase
+            .from('ingredients')
+            .insert(needsToInsert);
+
+          if (needsError) throw needsError;
+        }
+
+        router.push(`/soup/${newEventId}`);
+      } catch (err) {
+        console.error("Error creating event:", err.message || err);
+        alert(`Failed to create event: ${err.message || 'Unknown error'}`);
+        setIsSubmitting(false);
+      }
+    } else {
+      // Not logged in, go to draft flow
+      localStorage.setItem('stoneSoupDraft', JSON.stringify(cleanData));
+      router.push('/demo');
+    }
   };
 
   return (
@@ -94,17 +158,17 @@ export default function Home() {
               
               {/* The Stone Section */}
               <section className="relative z-10">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-sage mb-2">What's the magic? ✨</h3>
-                <label htmlFor="stone" className="block text-xl font-medium mb-3">
-                  The Stone <span className="text-sm font-normal text-stone-sage-light ml-2">(Event Idea)</span>
+                <label htmlFor="stone" className="block text-2xl font-bold mb-1 text-stone-terracotta-dark">
+                  The Stone 🪨
                 </label>
+                <p className="text-sm text-stone-text/70 mb-4">What's the core idea? (e.g. A cozy book exchange, a neighborhood cleanup)</p>
                 <input 
                   type="text" 
                   id="stone"
                   required
                   value={formData.stone}
                   onChange={(e) => setFormData({...formData, stone: e.target.value})}
-                  placeholder="A cozy book exchange, park picnic..."
+                  placeholder="Event Title"
                   className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
                 />
                 
@@ -120,13 +184,18 @@ export default function Home() {
                 </div>
               </section>
 
-               {/* The Pot Section */}
+              {/* The Pot Section */}
               <section>
-                 <h3 className="text-xs font-bold uppercase tracking-wider text-stone-sage mb-2">Where & When? 📍</h3>
+                 <div className="mb-4">
+                   <h3 className="block text-2xl font-bold mb-1 text-stone-terracotta-dark">
+                     The Pot 🍲
+                   </h3>
+                   <p className="text-sm text-stone-text/70">Where and when is this gathering taking place?</p>
+                 </div>
                   
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="location" className="block text-xl font-medium mb-3">
+                      <label htmlFor="location" className="block text-sm font-semibold mb-2 text-stone-text/80">
                         Location
                       </label>
                       <input 
@@ -139,30 +208,43 @@ export default function Home() {
                         className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
                       />
                     </div>
-                    <div>
-                      <label htmlFor="datetime" className="block text-xl font-medium mb-3">
-                        Date & Time
-                      </label>
-                      <input 
-                        type="text" 
-                        id="datetime" 
-                        required
-                        value={formData.datetime}
-                        onChange={(e) => setFormData({...formData, datetime: e.target.value})}
-                        placeholder="e.g. Sat, Oct 19, 2 PM"
-                        className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="event_date" className="block text-sm font-semibold mb-2 text-stone-text/80">
+                          Date
+                        </label>
+                        <input 
+                          type="date" 
+                          id="event_date" 
+                          required
+                          value={formData.event_date}
+                          onChange={(e) => setFormData({...formData, event_date: e.target.value})}
+                          className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="event_time" className="block text-sm font-semibold mb-2 text-stone-text/80">
+                          Time
+                        </label>
+                        <input 
+                          type="time" 
+                          id="event_time" 
+                          required
+                          value={formData.event_time}
+                          onChange={(e) => setFormData({...formData, event_time: e.target.value})}
+                          className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
+                        />
+                      </div>
                     </div>
                   </div>
               </section>
 
               {/* Initial Needs Section */}
               <section>
-                 <h3 className="text-xs font-bold uppercase tracking-wider text-stone-sage mb-2">Kickstart the soup 🥕</h3>
-                  <label className="block text-xl font-medium mb-2">
-                    Initial Ingredients <span className="text-sm font-normal text-stone-sage-light ml-2">(What do you need?)</span>
+                  <label className="block text-2xl font-bold mb-1 text-stone-terracotta-dark">
+                    Initial Ingredients 🥕
                   </label>
-                  <p className="text-xs text-stone-text/60 mb-4">List a few things to get the pot started. Attendees can claim these or bring their own surprises.</p>
+                  <p className="text-sm text-stone-text/70 mb-4">List a few things to get the pot started. Attendees can claim these or bring their own surprises.</p>
                   
                   <div className="space-y-3">
                     {formData.needs.map((need, index) => (
@@ -187,11 +269,14 @@ export default function Home() {
                   </div>
               </section>
 
-              {/* Action Button */}
               <div className="pt-4">
-                <button type="submit" className="w-full justify-center bg-stone-terracotta hover:bg-stone-terracotta-dark text-white text-lg font-bold py-4 px-8 rounded-xl shadow-sm transition-all hover:shadow-md flex items-center gap-2">
-                  Stir the Pot & Create Event
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full justify-center bg-stone-terracotta hover:bg-stone-terracotta-dark disabled:opacity-50 text-white text-lg font-bold py-4 px-8 rounded-xl shadow-sm transition-all hover:shadow-md flex items-center gap-2"
+                >
+                  {isSubmitting ? 'Stirring the Pot...' : 'Stir the Pot & Create Event'}
+                  {!isSubmitting && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>}
                 </button>
               </div>
 
