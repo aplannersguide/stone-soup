@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Header from '../components/Header';
 
 export default function Home() {
   const router = useRouter();
@@ -41,30 +42,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-stone-cream text-stone-text font-sans">
-      {/* Header */}
-      <header className="border-b border-stone-sage-light/30 bg-stone-paper/50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta">
-              <path d="M4 10h16"/>
-              <path d="M5 10v6a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-6"/>
-              <path d="M2 10h2"/>
-              <path d="M20 10h2"/>
-              <path d="M8 5v1"/>
-              <path d="M12 4v2"/>
-              <path d="M16 5v1"/>
-            </svg>
-            <span className="font-semibold text-xl tracking-tight">Stone Soup</span>
-          </div>
-          <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
-            <a href="#" className="hover:text-stone-terracotta transition-colors">Explore</a>
-            <a href="#" className="hover:text-stone-terracotta transition-colors">My Soups</a>
-            <div className="h-8 w-8 rounded-full bg-stone-sage text-white flex items-center justify-center">
-              SJ
-            </div>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-6 py-12 sm:py-20 grid lg:grid-cols-12 gap-16">

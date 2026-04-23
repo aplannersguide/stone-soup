@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import IngredientCard from '@/components/IngredientCard';
+import Header from '@/components/Header';
 
 export default function DynamicEventPage() {
   const params = useParams();
@@ -135,28 +136,7 @@ export default function DynamicEventPage() {
 
   return (
     <div className="min-h-screen bg-stone-cream text-stone-text font-sans pb-24">
-      {/* Header / Navigation */}
-      <header className="border-b border-stone-sage-light/30 bg-stone-paper/50 sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta group-hover:rotate-12 transition-transform">
-              <path d="M4 10h16"/>
-              <path d="M5 10v6a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-6"/>
-              <path d="M2 10h2"/>
-              <path d="M20 10h2"/>
-              <path d="M8 5v1"/>
-              <path d="M12 4v2"/>
-              <path d="M16 5v1"/>
-            </svg>
-            <span className="font-semibold text-xl tracking-tight hidden sm:block">Stone Soup</span>
-          </Link>
-          <div className="flex items-center gap-4">
-             <div className="text-sm font-medium bg-white px-3 py-1.5 rounded-full border border-stone-sage-light/30 shadow-sm text-stone-text/70">
-               Viewing Public Event
-             </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* The Stone (Event Info) */}
       <section className="bg-stone-paper/30 border-b border-stone-sage-light/20 relative">
