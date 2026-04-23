@@ -1,64 +1,204 @@
-import Image from "next/image";
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Home() {
+  const router = useRouter();
+  
+  const [formData, setFormData] = useState({
+    stone: '',
+    description: '',
+    pot: '',
+    needs: ['', '']
+  });
+
+  const handleNeedChange = (index, value) => {
+    const newNeeds = [...formData.needs];
+    newNeeds[index] = value;
+    setFormData({ ...formData, needs: newNeeds });
+  };
+
+  const addNeed = () => {
+    setFormData({ ...formData, needs: [...formData.needs, ''] });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Filter out empty needs
+    const cleanData = {
+      ...formData,
+      needs: formData.needs.filter(n => n.trim() !== '')
+    };
+    
+    // Save to localStorage as our "Draft"
+    localStorage.setItem('stoneSoupDraft', JSON.stringify(cleanData));
+    
+    // Navigate to the shared pot page
+    router.push('/demo');
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-stone-cream text-stone-text font-sans">
+      {/* Header */}
+      <header className="border-b border-stone-sage-light/30 bg-stone-paper/50">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-terracotta">
+              <path d="M4 10h16"/>
+              <path d="M5 10v6a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-6"/>
+              <path d="M2 10h2"/>
+              <path d="M20 10h2"/>
+              <path d="M8 5v1"/>
+              <path d="M12 4v2"/>
+              <path d="M16 5v1"/>
+            </svg>
+            <span className="font-semibold text-xl tracking-tight">Stone Soup</span>
+          </div>
+          <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
+            <a href="#" className="hover:text-stone-terracotta transition-colors">Explore</a>
+            <a href="#" className="hover:text-stone-terracotta transition-colors">My Soups</a>
+            <div className="h-8 w-8 rounded-full bg-stone-sage text-white flex items-center justify-center">
+              SJ
+            </div>
+          </nav>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-6 py-12 sm:py-20 grid lg:grid-cols-12 gap-16">
+        
+        {/* Left Column: Concept & Guidelines */}
+        <div className="lg:col-span-5 space-y-12">
+           <div className="space-y-6">
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-stone-terracotta-dark">
+                Shift from scarcity to abundance.
+              </h1>
+              <p className="text-lg text-stone-text/80 leading-relaxed">
+                In the fable of Stone Soup, a hungry stranger convinces a village to share their small, individual food hoards to create a massive feast that feeds everyone. 
+              </p>
+              <p className="text-lg text-stone-text/80 leading-relaxed">
+                This platform helps you host events the same way. You bring the "Stone" (an idea) and the "Pot" (a venue). Your community brings the ingredients—food, skills, gear, or just a helping hand. 
+              </p>
+           </div>
+
+           <div className="bg-stone-paper/50 p-8 rounded-2xl border border-stone-sage-light/30">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-sage"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                 How it works
+              </h2>
+              <ul className="space-y-4 text-sm text-stone-text/80">
+                 <li className="flex gap-3">
+                   <span className="text-stone-terracotta font-bold">1.</span>
+                   <span><strong>Start the Pot.</strong> You provide the central idea (The Stone) and the venue (The Pot). Make sure it's something you'd enjoy even if it's just a few people.</span>
+                 </li>
+                 <li className="flex gap-3">
+                   <span className="text-stone-terracotta font-bold">2.</span>
+                   <span><strong>Ask for Ingredients.</strong> List the few key things you need to make the event great—tables, food, a speaker, or helping hands.</span>
+                 </li>
+                 <li className="flex gap-3">
+                   <span className="text-stone-terracotta font-bold">3.</span>
+                   <span><strong>The Community Contributes.</strong> Attendees claim your needs or offer their own "Surprise Ingredients." When the pot is full, you declare the soup ready!</span>
+                 </li>
+              </ul>
+           </div>
         </div>
+
+        {/* Right Column: Event Creation Form */}
+        <div className="lg:col-span-7">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-stone-sage-light/20 relative overflow-hidden">
+            <h2 className="text-2xl font-bold mb-8">Start a new soup</h2>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              
+              {/* The Stone Section */}
+              <section className="relative z-10">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-sage mb-2">What's the magic? ✨</h3>
+                <label htmlFor="stone" className="block text-xl font-medium mb-3">
+                  The Stone <span className="text-sm font-normal text-stone-sage-light ml-2">(Event Idea)</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="stone"
+                  required
+                  value={formData.stone}
+                  onChange={(e) => setFormData({...formData, stone: e.target.value})}
+                  placeholder="A cozy book exchange, park picnic..."
+                  className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
+                />
+                
+                <div className="mt-4">
+                  <textarea 
+                    id="description" 
+                    rows="2" 
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Tell people a bit more about why we are gathering..."
+                    className="w-full p-4 text-sm bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow resize-none"
+                  ></textarea>
+                </div>
+              </section>
+
+              {/* The Pot Section */}
+              <section>
+                 <h3 className="text-xs font-bold uppercase tracking-wider text-stone-sage mb-2">Where & When? 📍</h3>
+                  <label htmlFor="pot" className="block text-xl font-medium mb-3">
+                    The Pot <span className="text-sm font-normal text-stone-sage-light ml-2">(Location & Time)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="pot" 
+                    required
+                    value={formData.pot}
+                    onChange={(e) => setFormData({...formData, pot: e.target.value})}
+                    placeholder="e.g. Central Park • Sat, Oct 19, 2 PM"
+                    className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
+                  />
+              </section>
+
+              {/* Initial Needs Section */}
+              <section>
+                 <h3 className="text-xs font-bold uppercase tracking-wider text-stone-sage mb-2">Kickstart the soup 🥕</h3>
+                  <label className="block text-xl font-medium mb-2">
+                    Initial Ingredients <span className="text-sm font-normal text-stone-sage-light ml-2">(What do you need?)</span>
+                  </label>
+                  <p className="text-xs text-stone-text/60 mb-4">List a few things to get the pot started. Attendees can claim these or bring their own surprises.</p>
+                  
+                  <div className="space-y-3">
+                    {formData.needs.map((need, index) => (
+                      <input 
+                        key={index}
+                        type="text" 
+                        value={need}
+                        onChange={(e) => handleNeedChange(index, e.target.value)}
+                        placeholder={index === 0 ? "e.g. 2 folding tables" : "e.g. A bluetooth speaker"} 
+                        className="w-full p-3 text-sm bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50" 
+                      />
+                    ))}
+                    
+                    <button 
+                      type="button" 
+                      onClick={addNeed}
+                      className="flex items-center gap-2 text-stone-terracotta font-medium text-sm cursor-pointer hover:text-stone-terracotta-dark"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                      Add another need
+                    </button>
+                  </div>
+              </section>
+
+              {/* Action Button */}
+              <div className="pt-4">
+                <button type="submit" className="w-full justify-center bg-stone-terracotta hover:bg-stone-terracotta-dark text-white text-lg font-bold py-4 px-8 rounded-xl shadow-sm transition-all hover:shadow-md flex items-center gap-2">
+                  Stir the Pot & Create Event
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
       </main>
     </div>
   );
