@@ -7,6 +7,7 @@ import { geocodeLocation } from '@/lib/geocode';
 import IngredientCard from '@/components/IngredientCard';
 import FeedbackBoard from '@/components/FeedbackBoard';
 import Header from '@/components/Header';
+import { isClean } from '@/lib/contentFilter';
 
 export default function DynamicEventPage() {
   const params = useParams();
@@ -84,6 +85,12 @@ export default function DynamicEventPage() {
   }, [eventId]);
 
   const handleAutoSaveEventField = async (field, value) => {
+    if (!isClean(value)) {
+      alert("Please keep your text PG!");
+      setEditData(prev => ({ ...prev, [field]: eventData[field] }));
+      return;
+    }
+
     try {
       let extraUpdates = {};
       if (field === 'location') {
@@ -121,6 +128,10 @@ export default function DynamicEventPage() {
 
   const handleAddSurprise = async () => {
     if (!newSurprise.trim() || !eventData) return;
+    if (!isClean(newSurprise)) {
+      alert("Please keep your ingredients PG!");
+      return;
+    }
     const gName = isHost ? 'The Host' : getGuestName();
     if (!gName) return;
 
@@ -219,6 +230,10 @@ export default function DynamicEventPage() {
 
   const handleAddNeed = async () => {
     if (!newSurprise.trim() || !eventData) return;
+    if (!isClean(newSurprise)) {
+      alert("Please keep your ingredients PG!");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -259,6 +274,10 @@ export default function DynamicEventPage() {
   };
 
   const handleUpdateNeedTitle = async (ingredientId, newTitle) => {
+    if (!isClean(newTitle)) {
+      alert("Please keep your ingredients PG!");
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from('ingredients')
@@ -334,6 +353,7 @@ export default function DynamicEventPage() {
                 value={editData.stone}
                 onChange={e => setEditData({ ...editData, stone: e.target.value })}
                 onBlur={e => handleAutoSaveEventField('stone', e.target.value)}
+                maxLength={100}
                 className="w-full text-center text-4xl sm:text-5xl font-bold mb-4 tracking-tight text-stone-terracotta-dark bg-transparent border-b-2 border-transparent hover:border-stone-sage-light/50 focus:outline-none focus:border-stone-terracotta transition-colors"
                 placeholder="Event Title"
               />
@@ -341,6 +361,7 @@ export default function DynamicEventPage() {
                 value={editData.description}
                 onChange={e => setEditData({ ...editData, description: e.target.value })}
                 onBlur={e => handleAutoSaveEventField('description', e.target.value)}
+                maxLength={500}
                 className="w-full text-center text-lg text-stone-text/80 max-w-2xl mx-auto mb-8 bg-transparent border-b-2 border-transparent hover:border-stone-sage-light/50 focus:outline-none focus:border-stone-terracotta transition-colors resize-none"
                 placeholder="Add a description..."
                 rows="2"
@@ -353,6 +374,7 @@ export default function DynamicEventPage() {
                     value={editData.location}
                     onChange={e => setEditData({ ...editData, location: e.target.value })}
                     onBlur={e => handleAutoSaveEventField('location', e.target.value)}
+                    maxLength={150}
                     className="bg-transparent focus:outline-none text-center w-40 sm:w-auto font-medium"
                     placeholder="Location"
                   />
@@ -491,6 +513,7 @@ export default function DynamicEventPage() {
                     onChange={(e) => setNewSurprise(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && (isHost ? handleAddNeed() : handleAddSurprise())}
                     placeholder={isHost ? "Add a new need to the pot..." : "I can bring..."}
+                    maxLength={60}
                     className="flex-1 p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50"
                     disabled={isSubmitting}
                   />

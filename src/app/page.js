@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import { supabase } from '../lib/supabase';
 import { geocodeLocation } from '../lib/geocode';
+import { isAllClean } from '../lib/contentFilter';
 
 export default function Home() {
   const router = useRouter();
@@ -55,6 +56,12 @@ export default function Home() {
       event_time: formData.event_time,
       needs: cleanNeeds
     };
+
+    if (!isAllClean([cleanData.stone, cleanData.description, cleanData.location, ...cleanData.needs])) {
+      alert("Please keep your soup PG! We detected some inappropriate language.");
+      setIsSubmitting(false);
+      return;
+    }
 
     if (currentSession?.user) {
       // User is logged in, create event directly
@@ -175,6 +182,7 @@ export default function Home() {
                   value={formData.stone}
                   onChange={(e) => setFormData({ ...formData, stone: e.target.value })}
                   placeholder="Event Title"
+                  maxLength={100}
                   className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
                 />
 
@@ -185,6 +193,7 @@ export default function Home() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Tell people a bit more about why we are gathering..."
+                    maxLength={500}
                     className="w-full p-4 text-sm bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow resize-none"
                   ></textarea>
                 </div>
@@ -211,6 +220,7 @@ export default function Home() {
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                       placeholder="e.g. Central Park"
+                      maxLength={150}
                       className="w-full text-base p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 transition-shadow"
                     />
                   </div>
@@ -260,6 +270,7 @@ export default function Home() {
                       value={need}
                       onChange={(e) => handleNeedChange(index, e.target.value)}
                       placeholder={index === 0 ? "e.g. 2 folding tables" : "e.g. A bluetooth speaker"}
+                      maxLength={60}
                       className="w-full p-3 text-sm bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50"
                     />
                   ))}

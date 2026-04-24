@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { isClean } from '@/lib/contentFilter';
 
 export default function FeedbackBoard({ eventId, isHost, guestName, getGuestName }) {
   const [feedback, setFeedback] = useState([]);
@@ -33,6 +34,11 @@ export default function FeedbackBoard({ eventId, isHost, guestName, getGuestName
     e.preventDefault();
     if (rating === 0) {
       alert("Please select a star rating!");
+      return;
+    }
+    
+    if (!isClean(comment)) {
+      alert("Please keep your comments PG!");
       return;
     }
 
@@ -94,6 +100,7 @@ export default function FeedbackBoard({ eventId, isHost, guestName, getGuestName
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="What was your favorite part?"
+              maxLength={1000}
               className="w-full p-4 bg-stone-cream/50 border border-stone-sage-light rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-terracotta/50 resize-none h-32"
             />
 
