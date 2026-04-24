@@ -8,7 +8,9 @@ export default function IngredientCard({
   claimedBy = null, 
   isReady = false,
   isHost = false,
+  guestName = null,
   onClaim = () => {},
+  onUnclaim = () => {},
   onUpdate = () => {},
   onDelete = () => {}
 }) {
@@ -32,11 +34,16 @@ export default function IngredientCard({
            </div>
            <div>
              <div className="font-medium text-sm">
-               <span className="font-bold">{claimedBy?.name || 'Someone'}</span> is bringing:
+               <span className="font-bold">{claimedBy?.name === guestName ? 'You' : (claimedBy?.name || 'Someone')}</span> is bringing:
              </div>
              <p className="text-base font-medium text-stone-terracotta-dark mt-1">
                "{description || title}"
              </p>
+             {!isReady && !isHost && claimedBy?.name === guestName && (
+               <button onClick={onUnclaim} className="text-xs text-red-400 hover:text-red-600 underline mt-2 font-medium">
+                 Undo (Remove this)
+               </button>
+             )}
            </div>
         </div>
       </div>
@@ -107,8 +114,15 @@ export default function IngredientCard({
              </span>
            </div>
            {claimedBy && (
-             <div className="mt-2 text-sm text-stone-text/70">
-               Bringing: <strong>{typeof claimedBy === 'string' ? claimedBy : claimedBy.name}</strong>
+             <div className="mt-2 text-sm text-stone-text/70 flex justify-between items-center">
+               <span>
+                 Bringing: <strong>{typeof claimedBy === 'string' ? (claimedBy === guestName ? 'You' : claimedBy) : (claimedBy.name === guestName ? 'You' : claimedBy.name)}</strong>
+               </span>
+               {!isReady && !isHost && ((typeof claimedBy === 'string' ? claimedBy : claimedBy.name) === guestName) && (
+                 <button onClick={onUnclaim} className="text-xs text-red-400 hover:text-red-600 underline font-medium">
+                   Undo
+                 </button>
+               )}
              </div>
            )}
         </div>

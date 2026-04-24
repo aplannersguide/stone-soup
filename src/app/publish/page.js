@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { geocodeLocation } from '../../lib/geocode';
 
 export default function PublishFlow() {
   const [isPublished, setIsPublished] = useState(false);
@@ -40,6 +41,9 @@ export default function PublishFlow() {
       const user = authData.user;
       if (!user) throw new Error("Could not create user account.");
 
+      // Geocode the location
+      const coords = await geocodeLocation(draft.location);
+
       // 2. Insert Event (linked to the user)
       const { data: eventData, error: eventError } = await supabase
         .from('events')
@@ -50,6 +54,8 @@ export default function PublishFlow() {
             pot: `${draft.location} | ${draft.event_date} ${draft.event_time}`, // Legacy column fallback
             description: draft.description,
             location: draft.location,
+            lat: coords.lat,
+            lng: coords.lng,
             event_date: draft.event_date,
             event_time: draft.event_time,
             status: 'Gathering',
