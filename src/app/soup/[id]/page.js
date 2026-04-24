@@ -295,6 +295,16 @@ export default function DynamicEventPage() {
     }
   };
 
+  const handleShare = () => {
+    if (typeof window === 'undefined') return;
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      alert("Event link copied to clipboard!");
+    }).catch(err => {
+      console.error('Could not copy text: ', err);
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-stone-cream flex items-center justify-center">
